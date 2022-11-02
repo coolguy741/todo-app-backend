@@ -5,7 +5,7 @@ const Joi = require("joi");
 
 const router = express.Router();
 
-router.get("/", auth, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const todos = await Todo.find().sort({ date: -1 });
     res.send(todos);
@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
   }).options({ abortEarly: false });
 
   const { error } = schema.validate(req.body);
-  if (error) return res.send(error.details[0].message);
+  if (error) return res.status(400).send(error.details[0].message);
 
   const { name, author, isComplete, date, uid } = req.body;
 
@@ -110,9 +110,34 @@ router.patch("/:id", async (req, res) => {
 
     if (!todo) return res.status(404).send("Todo not found");
 
-    const updatedTodo = await Todo.findByIdAndUpdate(req.params.id, {
-      isComplete: !todo.isComplete,
-    });
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      req.params.id,
+      {
+        isComplete: !todo.isComplete,
+      },
+      { new: true }
+    );
+    console.log(updatedTodo);
+    res.send(updatedTodo);
+  } catch (error) {
+    res.status(500).send(error.message);
+    console.log(error.message);
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const todo = await Todo.findById(req.params.id);
+
+    if (!todo) return res.status(404).send("Todo not found");
+
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      req.params.id,
+      {
+        isComplete: !todo.isComplete,
+      },
+      { new: true }
+    );
     console.log(updatedTodo);
     res.send(updatedTodo);
   } catch (error) {
